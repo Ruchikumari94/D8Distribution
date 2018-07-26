@@ -1,0 +1,14 @@
+uuid: 9ef27dac-b5f3-4d51-8b40-8f67e6fd8f2e
+name: D8Distribution
+mail: ruchi94@iitb.ac.in
+slogan: ''
+page:
+  403: ''
+  404: ''
+  front: /node
+admin_compact_mode: false
+weight_select_max: 100
+langcode: en
+default_langcode: en
+_core:
+  default_config_hash: yXadRE77Va-G6dxhd2kPYapAvbnSvTF6hO4oXiOEynI

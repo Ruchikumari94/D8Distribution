@@ -1,0 +1,11 @@
+name: TechX
+mail: techx@example.com
+slogan: 'Drupal Installation Profile'
+page:
+  403: ''
+  404: ''
+  front: /home
+admin_compact_mode: false
+weight_select_max: 100
+langcode: en
+default_langcode: en

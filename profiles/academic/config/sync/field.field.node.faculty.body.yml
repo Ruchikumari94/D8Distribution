@@ -1,0 +1,22 @@
+uuid: 905f6b1c-05b9-4b71-9916-201128fa97d8
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.body
+    - node.type.faculty
+  module:
+    - text
+id: node.faculty.body
+field_name: body
+entity_type: node
+bundle: faculty
+label: Body
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  display_summary: true
+field_type: text_with_summary

@@ -6,6 +6,9 @@
  */
 
 use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Config\ConfigImporter;
+use Drupal\Core\Config\ConfigImporterException;
+use Drupal\Core\Config\StorageComparer;
 use Drupal\Core\DrupalKernel;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Database\DatabaseExceptionWrapper;
@@ -188,6 +191,10 @@ function install_state_defaults() {
     // The last task that was completed during the previous installation
     // request.
     'completed_task' => NULL,
+    // Partial configuration cached during an installation from existing config.
+    'config' => NULL,
+    // The path to the configuration to install when installing from config.
+    'config_install_path' => NULL,
     // TRUE when there are valid config directories.
     'config_verified' => FALSE,
     // TRUE when there is a valid database connection.
@@ -454,9 +461,13 @@ function install_begin_request($class_loader, &$install_state) {
     }
   }
 
-  // Use the language from the profile configuration, if available, to override
-  // the language previously set in the parameters.
-  if (isset($install_state['profile_info']['distribution']['langcode'])) {
+  // Use the language from profile configuration if available.
+  if (!empty($install_state['config_install_path']) && $install_state['config']['system.site']) {
+    $install_state['parameters']['langcode'] = $install_state['config']['system.site']['default_langcode'];
+  }
+  elseif (isset($install_state['profile_info']['distribution']['langcode'])) {
+    // Otherwise, Use the language from the profile configuration, if available,
+    // to override the language previously set in the parameters.
     $install_state['parameters']['langcode'] = $install_state['profile_info']['distribution']['langcode'];
   }
 
@@ -792,6 +803,30 @@ function install_tasks($install_state) {
       'function' => 'Drupal\Core\Installer\Form\SiteConfigureForm',
     ],
   ];
+
+  if (!empty($install_state['config_install_path'])) {
+    // The chosen profile indicates that rather than installing a new site, an
+    // instance of the same site should be installed from the given
+    // configuration.
+    // That means we need to remove the steps installing the extensions and
+    // replace them with a configuration synchronization step.
+    unset($tasks['install_download_translation']);
+    $key = array_search('install_profile_modules', array_keys($tasks), TRUE);
+    unset($tasks['install_profile_modules']);
+    unset($tasks['install_profile_themes']);
+    unset($tasks['install_install_profile']);
+    $config_tasks = [
+      'install_config_import_batch' => [
+        'display_name' => t('Install configuration'),
+        'type' => 'batch',
+      ],
+      'install_config_download_translations' => [],
+      'install_config_fix_profile' => [],
+    ];
+    $tasks = array_slice($tasks, 0, $key, TRUE) +
+      $config_tasks +
+      array_slice($tasks, $key, NULL, TRUE);
+  }
 
   // Now add any tasks defined by the installation profile.
   if (!empty($install_state['parameters']['profile'])) {
@@ -1469,6 +1504,14 @@ function install_load_profile(&$install_state) {
   $profile = $install_state['parameters']['profile'];
   $install_state['profiles'][$profile]->load();
   $install_state['profile_info'] = install_profile_info($profile, isset($install_state['parameters']['langcode']) ? $install_state['parameters']['langcode'] : 'en');
+  // If the profile has a config/sync directory copy the information to the
+  // install_state global.
+  if (!empty($install_state['profile_info']['config_install_path'])) {
+    $install_state['config_install_path'] = $install_state['profile_info']['config_install_path'];
+    if (!empty($install_state['profile_info']['config'])) {
+      $install_state['config'] = $install_state['profile_info']['config'];
+    }
+  }
 }
 
 /**
@@ -2221,5 +2264,192 @@ function install_write_profile($install_state) {
   }
   elseif (($settings_profile = Settings::get('install_profile')) && $settings_profile !== $install_state['parameters']['profile']) {
     throw new InstallProfileMismatchException($install_state['parameters']['profile'], $settings_profile, $settings_path, \Drupal::translation());
+  }
+}
+
+/**
+ * Creates a batch for the config importer to process.
+ *
+ * @see install_tasks()
+ */
+function install_config_import_batch() {
+  // We need to manually trigger the installation of core-provided entity types,
+  // as those will not be handled by the module installer.
+  // @see install_profile_modules()
+  install_core_entity_type_definitions();
+
+  // Get the sync storage.
+  $sync = \Drupal::service('config.storage.sync');
+  // Match up the site UUIDs, the install_base_system install task will have
+  // installed the system module and created a new UUID.
+  $system_site = $sync->read('system.site');
+  \Drupal::configFactory()->getEditable('system.site')->set('uuid', $system_site['uuid'])->save();
+
+  // Create the storage comparer and the config importer.
+  $config_manager = \Drupal::service('config.manager');
+  $storage_comparer = new StorageComparer($sync, \Drupal::service('config.storage'), $config_manager);
+  $storage_comparer->createChangelist();
+  $config_importer = new ConfigImporter(
+    $storage_comparer,
+    \Drupal::service('event_dispatcher'),
+    $config_manager,
+    \Drupal::service('lock.persistent'),
+    \Drupal::service('config.typed'),
+    \Drupal::service('module_handler'),
+    \Drupal::service('module_installer'),
+    \Drupal::service('theme_handler'),
+    \Drupal::service('string_translation')
+  );
+
+  try {
+    $sync_steps = $config_importer->initialize();
+
+    $batch = [
+      'operations' => [],
+      'finished' => 'install_config_import_batch_finish',
+      'title' => t('Synchronizing configuration'),
+      'init_message' => t('Starting configuration synchronization.'),
+      'progress_message' => t('Completed @current step of @total.'),
+      'error_message' => t('Configuration synchronization has encountered an error.'),
+      'file' => drupal_get_path('module', 'config') . '/config.admin.inc',
+    ];
+    foreach ($sync_steps as $sync_step) {
+      $batch['operations'][] = ['install_config_import_batch_process', [$config_importer, $sync_step]];
+    }
+
+    return $batch;
+  }
+  catch (ConfigImporterException $e) {
+    global $install_state;
+    // There are validation errors.
+    drupal_set_message(t('The configuration synchronization failed validation.'), 'error');
+    foreach ($config_importer->getErrors() as $message) {
+      drupal_set_message($message, 'error');
+    }
+    install_display_output(['#title' => t('Configuration validation')], $install_state);
+  }
+}
+
+/**
+ * Processes the config import batch and persists the importer.
+ *
+ * @param \Drupal\Core\Config\ConfigImporter $config_importer
+ *   The batch config importer object to persist.
+ * @param string $sync_step
+ *   The synchronization step to do.
+ * @param $context
+ *   The batch context.
+ *
+ * @see install_config_import_batch()
+ */
+function install_config_import_batch_process(ConfigImporter $config_importer, $sync_step, &$context) {
+  if (!isset($context['sandbox']['config_importer'])) {
+    $context['sandbox']['config_importer'] = $config_importer;
+  }
+
+  $config_importer = $context['sandbox']['config_importer'];
+  $config_importer->doSyncStep($sync_step, $context);
+  if ($errors = $config_importer->getErrors()) {
+    if (!isset($context['results']['errors'])) {
+      $context['results']['errors'] = [];
+    }
+    $context['results']['errors'] += $errors;
+  }
+}
+
+/**
+ * Finish config importer batch.
+ *
+ * @see install_config_import_batch()
+ */
+function install_config_import_batch_finish($success, $results, $operations) {
+  if ($success) {
+    if (!empty($results['errors'])) {
+      foreach ($results['errors'] as $error) {
+        drupal_set_message($error, 'error');
+        \Drupal::logger('config_sync')->error($error);
+      }
+      drupal_set_message(t('The configuration was imported with errors.'), 'warning');
+    }
+    else {
+      // Configuration sync needs a complete cache flush.
+      drupal_flush_all_caches();
+    }
+  }
+  else {
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+    $message = t('An error occurred while processing %error_operation with arguments: @arguments', [
+      '%error_operation' => $error_operation[0],
+      '@arguments' => print_r($error_operation[1], TRUE)
+    ]);
+    drupal_set_message($message, 'error');
+  }
+}
+
+/**
+ * Replaces install_download_translation() during configuration installs.
+ *
+ * @param array $install_state
+ *   An array of information about the current installation state.
+ *
+ * @return string
+ *   A themed status report, or an exception if there are requirement errors.
+ *   Upon successful download the page is reloaded and no output is returned.
+ *
+ * @see install_download_translation()
+ */
+function install_config_download_translations(&$install_state) {
+  $needs_download = isset($install_state['parameters']['langcode']) && !isset($install_state['translations'][$install_state['parameters']['langcode']]) && $install_state['parameters']['langcode'] !== 'en';
+  if ($needs_download) {
+    return install_download_translation($install_state);
+  }
+}
+
+/**
+ * Fixes configuration if the install profile has made changes in hook_install().
+ */
+function install_config_fix_profile() {
+  global $install_state;
+  // It is possible that installing the profile makes unintended configuration
+  // changes.
+  $config_manager = \Drupal::service('config.manager');
+  $storage_comparer = new StorageComparer(\Drupal::service('config.storage.sync'), \Drupal::service('config.storage'), $config_manager);
+  $storage_comparer->createChangelist();
+  if ($storage_comparer->hasChanges()) {
+    $config_importer = new ConfigImporter(
+      $storage_comparer,
+      \Drupal::service('event_dispatcher'),
+      $config_manager,
+      \Drupal::service('lock.persistent'),
+      \Drupal::service('config.typed'),
+      \Drupal::service('module_handler'),
+      \Drupal::service('module_installer'),
+      \Drupal::service('theme_handler'),
+      \Drupal::service('string_translation')
+    );
+    try {
+      $config_importer->import();
+    }
+    catch (ConfigImporterException $e) {
+      global $install_state;
+      // There are validation errors.
+      drupal_set_message(t('The configuration synchronization failed validation.'), 'error');
+      foreach ($config_importer->getErrors() as $message) {
+        drupal_set_message($message, 'error');
+      }
+      install_display_output(['#title' => t('Configuration validation')], $install_state);
+    }
+
+    // At this point the configuration should match completely.
+    if (\Drupal::moduleHandler()->moduleExists('language')) {
+      // If the English language exists at this point we need to ensure
+      // install_download_additional_translations_operations() does not delete
+      // it.
+      if (ConfigurableLanguage::load('en')) {
+        $install_state['profile_info']['keep_english'] = TRUE;
+      }
+    }
   }
 }

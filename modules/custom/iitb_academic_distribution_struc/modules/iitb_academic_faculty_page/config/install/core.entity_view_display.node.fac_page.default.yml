@@ -1,0 +1,180 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.fac_page.body
+    - field.field.node.fac_page.field_faculty_affiliations
+    - field.field.node.fac_page.field_faculty_awards_and_fellows
+    - field.field.node.fac_page.field_faculty_background
+    - field.field.node.fac_page.field_faculty_building
+    - field.field.node.fac_page.field_faculty_category
+    - field.field.node.fac_page.field_faculty_courses_taught
+    - field.field.node.fac_page.field_faculty_designation
+    - field.field.node.fac_page.field_faculty_detailed_informati
+    - field.field.node.fac_page.field_faculty_email
+    - field.field.node.fac_page.field_faculty_full_name
+    - field.field.node.fac_page.field_faculty_mobile_number
+    - field.field.node.fac_page.field_faculty_phone_no
+    - field.field.node.fac_page.field_faculty_photo
+    - field.field.node.fac_page.field_faculty_publications_link
+    - field.field.node.fac_page.field_faculty_r_d_projects
+    - field.field.node.fac_page.field_faculty_room_no
+    - node.type.fac_page
+  module:
+    - image
+    - link
+    - name
+    - options
+    - text
+    - user
+id: node.fac_page.default
+targetEntityType: node
+bundle: fac_page
+mode: default
+content:
+  body:
+    label: hidden
+    type: text_default
+    weight: 101
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+  field_faculty_affiliations:
+    weight: 118
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_faculty_awards_and_fellows:
+    weight: 119
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_faculty_background:
+    weight: 120
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_faculty_building:
+    weight: 121
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_faculty_category:
+    weight: 122
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: list_default
+    region: content
+  field_faculty_courses_taught:
+    weight: 123
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_faculty_designation:
+    weight: 130
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: list_default
+    region: content
+  field_faculty_detailed_informati:
+    weight: 132
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    type: link
+    region: content
+  field_faculty_email:
+    weight: 133
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: basic_string
+    region: content
+  field_faculty_full_name:
+    weight: 131
+    label: above
+    settings:
+      format: default
+      markup: false
+      output: default
+      multiple: default
+      multiple_delimiter: ', '
+      multiple_and: text
+      multiple_delimiter_precedes_last: never
+      multiple_el_al_min: '3'
+      multiple_el_al_first: '1'
+    third_party_settings: {  }
+    type: name_default
+    region: content
+  field_faculty_mobile_number:
+    weight: 124
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_faculty_phone_no:
+    weight: 125
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_faculty_photo:
+    weight: 129
+    label: above
+    settings:
+      image_style: ''
+      image_link: ''
+    third_party_settings: {  }
+    type: image
+    region: content
+  field_faculty_publications_link:
+    weight: 128
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    type: link
+    region: content
+  field_faculty_r_d_projects:
+    weight: 127
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_faculty_room_no:
+    weight: 126
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    type: number_integer
+    region: content
+  links:
+    weight: 100
+    region: content
+hidden: {  }

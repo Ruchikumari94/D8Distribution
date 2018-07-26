@@ -1,0 +1,17 @@
+uuid: 7a7c82d8-336e-4640-9cf5-dd7564e14459
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus: {  }
+    parent: ''
+name: Demo123
+type: demo123
+description: ''
+help: ''
+new_revision: false
+preview_mode: 1
+display_submitted: false

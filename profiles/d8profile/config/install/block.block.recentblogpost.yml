@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - d8profile
+  theme:
+    - bartik
+id: recentblogpost
+theme: bartik
+region: sidebar_first
+weight: 0
+provider: null
+plugin: recent_blog_post_block
+settings:
+  id: recent_blog_post_block
+  label: 'Recent Blog Post'
+  provider: d8profile
+  label_display: '0'
+visibility: {  }

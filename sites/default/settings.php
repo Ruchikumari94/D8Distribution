@@ -796,4 +796,4 @@ $databases['default']['default'] = array (
   'driver' => 'mysql',
 );
 $settings['install_profile'] = 'standard';
-$config_directories['sync'] = 'sites/default/files/config_8SBgamcHzbjyR8R_o1-h2tevIJWFNMW7GHTD12GlWWvFyUJbFhja7e2eALeEWcdtfLyzad1wuA/sync';
+$config_directories['sync'] = 'profiles/academic/config/sync';

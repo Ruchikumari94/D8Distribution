@@ -1,0 +1,22 @@
+uuid: 953e80ea-57b1-4036-8319-a90f87f98c1a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.body
+    - node.type.demo123
+  module:
+    - text
+id: node.demo123.body
+field_name: body
+entity_type: node
+bundle: demo123
+label: Body
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  display_summary: true
+field_type: text_with_summary

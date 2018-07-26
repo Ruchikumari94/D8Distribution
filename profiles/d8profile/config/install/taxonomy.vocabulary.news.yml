@@ -1,0 +1,8 @@
+langcode: en
+status: true
+dependencies: {  }
+name: News
+vid: news
+description: 'Use News to group articles on similar topics into categories.'
+hierarchy: 0
+weight: 0

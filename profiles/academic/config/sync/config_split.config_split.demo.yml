@@ -1,0 +1,16 @@
+uuid: 1a0d7ea9-eb7e-4e71-aa36-e77e5330a274
+langcode: en
+status: true
+dependencies: {  }
+id: demo
+label: Demo
+folder: sites/default/files/demo
+module: {  }
+theme: {  }
+blacklist:
+  - views.view.faculty_list
+graylist:
+  - node.type.faculty
+graylist_dependents: true
+graylist_skip_equal: true
+weight: 0

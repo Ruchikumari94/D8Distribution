@@ -1,0 +1,23 @@
+uuid: c77f1666-9fa5-48aa-87a1-3401f0a463d5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_project_position
+    - node.type.faculty
+id: node.faculty.field_project_position
+field_name: field_project_position
+entity_type: node
+bundle: faculty
+label: 'Project Position'
+description: 'Check if the position is available; uncheck if it is not. A position will be advertised only if it is available.'
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

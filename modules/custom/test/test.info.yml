@@ -1,0 +1,15 @@
+name: test
+type: module
+description: 'My Awesome Module'
+core: 8.x
+package: Custom
+mtime: 1526382511
+dependencies:
+  - node
+  - user
+  - text
+  - name
+  - datetime
+  - image
+version: null
+php: 5.5.9

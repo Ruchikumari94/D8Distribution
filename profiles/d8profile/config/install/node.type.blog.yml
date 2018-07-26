@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies: {  }
+name: Blog
+type: blog
+description: 'Use <em>Blogs</em> for content like news, or blog posts.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

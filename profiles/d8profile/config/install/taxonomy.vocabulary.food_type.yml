@@ -1,0 +1,8 @@
+langcode: en
+status: true
+dependencies: {  }
+name: Food Type
+vid: food_type
+description: 'Use News to group articles on similar topics into categories.'
+hierarchy: 0
+weight: 0

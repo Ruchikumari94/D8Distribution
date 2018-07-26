@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_news
+    - node.type.blog
+    - taxonomy.vocabulary.news
+id: node.blog.field_news
+field_name: field_news
+entity_type: node
+bundle: blog
+label: News
+description: 'Enter a comma-separated list. For example: Amsterdam, Mexico City, "Cleveland, Ohio"'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      tags: news
+    sort:
+      field: _none
+    auto_create: true
+field_type: entity_reference

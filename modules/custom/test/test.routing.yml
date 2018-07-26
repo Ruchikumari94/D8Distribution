@@ -1,0 +1,9 @@
+
+test.password_form:
+  path: '/test/form/password'
+  defaults:
+    _form: '\Drupal\test\Form\PasswordForm'
+    _title: 'PasswordForm'
+  requirements:
+    _access: 'TRUE'
+  

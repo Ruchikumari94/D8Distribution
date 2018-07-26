@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - d8profile
+  theme:
+    - bartik
+id: poweredbyd8profile
+theme: bartik
+region: footer_fifth
+weight: 0
+provider: null
+plugin: d8_profile_powered_by_block
+settings:
+  id: d8_profile_powered_by_block
+  label: 'Powered by D8Profile'
+  provider: d8profile
+  label_display: '0'
+visibility: {  }
